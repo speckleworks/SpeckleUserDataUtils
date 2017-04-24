@@ -5,6 +5,8 @@ Create, Get and Set UserDictionary properties for various CommonObject types.
 ### Why? 
 Speckle Server handles all these props. Woot!
 
+### Check the [tutorial over on speckle.works](https://speckle.works/doc/userdatautils/) to get started with using the Speckle Data Utils.
+
 ### Component list and functionality: 
 
 #### Set User Data (SUD)
