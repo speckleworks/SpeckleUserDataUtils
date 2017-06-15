@@ -25,7 +25,7 @@ namespace UserDataUtils
         public override void AddedToDocument(GH_Document document)
         {
             base.AddedToDocument(document);
-            foreach(var param in Params.Input)
+            foreach (var param in Params.Input)
             {
                 param.ObjectChanged += (sender, e) =>
                 {
@@ -68,37 +68,46 @@ namespace UserDataUtils
 
                 if (value != null)
                 {
-                    GH_Number nmb = value as GH_Number;
-                    if (nmb != null)
-                        props.Set(key, nmb.Value);
+                    var theValue = value.GetType().GetProperty("Value").GetValue(value, null);
+                    GeometryBase geometry = null;
 
-                    if (value is double)
-                        props.Set(key, (double)value);
+                    if (theValue is Circle)
+                        geometry = ((Circle)theValue).ToNurbsCurve() as GeometryBase;
+                    else if (theValue is Line)
+                        geometry = ((Line)theValue).ToNurbsCurve() as GeometryBase;
+                    else if (theValue is Point3d)
+                        geometry = new Point((Point3d)theValue) as GeometryBase;
+                    else
+                        geometry = theValue as GeometryBase;
 
-                    if(value is int)
-                        props.Set(key, (double)value);
-
-                    GH_String str = value as GH_String;
-                    if (str != null)
-                        props.Set(key, str.Value);
-
-                    if (value is string)
-                        props.Set(key, (string)value);
-
-                    GH_Boolean bol = value as GH_Boolean;
-                    if (bol != null)
-                        props.Set(key, bol.Value);
-
-                    GH_ObjectWrapper temp = value as GH_ObjectWrapper;
-                    if (temp != null)
+                    // see if we have geometry to set
+                    if (geometry != null)
                     {
-                        ArchivableDictionary dict = ((GH_ObjectWrapper)value).Value as ArchivableDictionary;
-                        if (dict != null)
-                            props.Set(key, dict);
+                        Debug.WriteLine(geometry.GetType().ToString());
+                        props.Set(key, geometry);
                     }
+                    // if not
+                    else
+                    {
+                        if (theValue is double)
+                            props.Set(key, (double)theValue);
 
-                    if (!props.ContainsKey(key))
-                        this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, key + " could not be set. Strings, numbers, booleans and ArchivableDictionary are the only supported types.");
+                        if (theValue is int)
+                            props.Set(key, (double)theValue);
+
+                        if (theValue is string)
+                            props.Set(key, (string)theValue);
+
+                        if (theValue is bool)
+                            props.Set(key, (bool)theValue);
+
+                        if (theValue is ArchivableDictionary)
+                            props.Set(key, (ArchivableDictionary)theValue);
+                    }
+                }
+                else
+                {
+                    props.Set(key, "undefined");
                 }
             }
 
@@ -124,7 +133,7 @@ namespace UserDataUtils
             param.Name = GH_ComponentParamServer.InventUniqueNickname("ABCDEFGHIJKLMNOPQRSTUVWXYZ", Params.Input);
             param.NickName = param.Name;
             param.Description = "Property Name";
-            param.Optional = false;
+            param.Optional = true;
             param.Access = GH_ParamAccess.item;
 
             param.ObjectChanged += (sender, e) =>

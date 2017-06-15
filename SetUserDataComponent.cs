@@ -35,7 +35,9 @@ namespace UserDataUtils
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Object", "O", "Object to attach user data to.", GH_ParamAccess.item);
+            //pManager.AddGeometryParameter("Geo", "G", "Geometry to attach user data to.", GH_ParamAccess.item);
             pManager.AddGenericParameter("User Data", "D", "Data to attach.", GH_ParamAccess.item);
+            pManager[1].Optional = true;
         }
 
         /// <summary>
@@ -57,85 +59,52 @@ namespace UserDataUtils
             object obj = null;
             DA.GetData(0, ref obj);
 
-            // Remarks:
-            // 1) why lines, rectangles or *any* rhinocommon object can't have user dicts?
-            // 2) @David: i hate grasshopper typecasting and the hassle below
-            // (why isn't there a GH_DefaultType, where i can access the .Value regardless of type...?)
+            object obj2 = null;
+            DA.GetData(0, ref obj2);
 
-            GeometryBase myObj = null;
+            var theValue = obj2.GetType().GetProperty("Value").GetValue(obj2, null);
+            GeometryBase geometry = null;
 
-            GH_Mesh mesh = obj as GH_Mesh;
-            if (mesh != null)
-                myObj = mesh.Value;
+            if (theValue is Circle)
+                geometry = ((Circle)theValue).ToNurbsCurve() as GeometryBase;
+            else if (theValue is Line)
+                geometry = ((Line)theValue).ToNurbsCurve() as GeometryBase;
+            else if (theValue is Point3d)
+                geometry = new Point((Point3d)theValue) as GeometryBase;
+            else
+                geometry = theValue as GeometryBase;
 
-            GH_Brep brep = obj as GH_Brep;
-            if (brep != null)
-                myObj = brep.Value;
-
-            GH_Surface srf = obj as GH_Surface;
-            if (srf != null)
-                myObj = srf.Value;
-
-            GH_Box box = obj as GH_Box;
-            if (box != null)
-                myObj = box.Value.ToBrep();
-
-            GH_Curve crv = obj as GH_Curve;
-            if (crv != null)
-                myObj = crv.Value;
-
-            GH_Line line = obj as GH_Line;
-            if (line != null)
-                myObj = line.Value.ToNurbsCurve();
-
-            GH_Rectangle rect = obj as GH_Rectangle;
-            if (rect != null)
-                myObj = rect.Value.ToNurbsCurve();
-
-            GH_Circle circle = obj as GH_Circle;
-            if (circle != null)
-                myObj = circle.Value.ToNurbsCurve();
-
-            GH_Arc arc = obj as GH_Arc;
-            if (arc != null)
-                myObj = arc.Value.ToNurbsCurve();
-
-            GH_Point pt = obj as GH_Point;
-            if (pt != null)
-                myObj = new Point(pt.Value);
-
-            if (myObj == null)
+            
+            if(geometry==null)
             {
-                // get the object out
-                DA.SetData(0, obj);
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Failed to set user dictionary to object. Probably an unsupported type.");
+                DA.SetData(0, null);
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Input object not supported.");
                 return;
             }
 
-            myObj.UserDictionary.Clear();
+            object preDictionary = null;
+            DA.GetData(1, ref preDictionary);
 
-            object value = null;
-            DA.GetData(1, ref value);
-
-            GH_ObjectWrapper temp = value as GH_ObjectWrapper;
-            if(temp==null)
+            GH_ObjectWrapper temp = preDictionary as GH_ObjectWrapper; 
+            if (temp == null)
             {
-                DA.SetData(0, obj);
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Could not cast object to GH_ObjectWrapper.");
+                DA.SetData(0, geometry);
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Dictionary not provided. Object not modified.");
                 return;
             }
 
-            ArchivableDictionary dict = ((GH_ObjectWrapper)value).Value as ArchivableDictionary;
+            ArchivableDictionary dict = ((GH_ObjectWrapper)preDictionary).Value as ArchivableDictionary;
             if (dict == null)
             {
-                DA.SetData(0, obj);
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Could not cast object to Dictionary.");
+                DA.SetData(0, geometry);
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Dictionary not valid. Object not modified.");
                 return;
             }
 
-            myObj.UserDictionary.ReplaceContentsWith(dict);
+            geometry.UserDictionary.Clear();
+            geometry.UserDictionary.ReplaceContentsWith(dict);
 
-            DA.SetData(0, myObj);
+            DA.SetData(0, geometry);
         }
 
         protected override System.Drawing.Bitmap Icon
