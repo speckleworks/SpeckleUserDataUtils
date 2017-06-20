@@ -44,47 +44,38 @@ namespace UserDataUtils
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            object o = null;
-            DA.GetData(0, ref o);
-            if (o == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Failed to get object"); return; }
+            object obj2 = null;
+            DA.GetData(0, ref obj2);
+            if (obj2 == null) { AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Failed to get object"); return; }
 
-            CommonObject myObj = null;
+            var theValue = obj2.GetType().GetProperty("Value").GetValue(obj2, null);
+            GeometryBase geometry = null;
 
-            GH_Mesh mesh = o as GH_Mesh;
-            if (mesh != null)
-                myObj = mesh.Value;
+            if (theValue is Circle)
+                geometry = ((Circle)theValue).ToNurbsCurve() as GeometryBase;
+            else if (theValue is Line)
+                geometry = ((Line)theValue).ToNurbsCurve() as GeometryBase;
+            else if (theValue is Point3d)
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "User data does not persist on points.");
+            else
+                geometry = theValue as GeometryBase;
 
-            GH_Brep brep = o as GH_Brep;
-            if (brep != null)
-                myObj = brep.Value;
 
-            GH_Surface srf = o as GH_Surface;
-            if (srf != null)
-                myObj = srf.Value;
-
-            GH_Curve crv = o as GH_Curve;
-            if (crv != null)
-                myObj = crv.Value;
-
-            Point pt = o as Rhino.Geometry.Point;
-            if (pt != null)
-                myObj = pt;
-
-            if (myObj == null)
+            if (geometry == null)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Failed to get object");
                 DA.SetData(0, null);
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Input object not supported.");
                 return;
             }
 
-            if (myObj.UserDictionary == null)
+            if (geometry.UserDictionary == null)
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Object has no user dictionary.");
                 DA.SetData(0, null);
                 return;
             }
 
-            DA.SetData(0, myObj.UserDictionary);
+            DA.SetData(0, geometry.UserDictionary);
         }
 
         /// <summary>

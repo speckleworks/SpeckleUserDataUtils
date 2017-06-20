@@ -35,7 +35,6 @@ namespace UserDataUtils
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Object", "O", "Object to attach user data to.", GH_ParamAccess.item);
-            //pManager.AddGeometryParameter("Geo", "G", "Geometry to attach user data to.", GH_ParamAccess.item);
             pManager.AddGenericParameter("User Data", "D", "Data to attach.", GH_ParamAccess.item);
             pManager[1].Optional = true;
         }
