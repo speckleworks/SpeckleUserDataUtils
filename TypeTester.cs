@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-
-using Grasshopper.Kernel;
-using Rhino.Geometry;
-using Grasshopper.Kernel.Parameters;
-using System.Diagnostics;
-
-using System.Linq;
+﻿using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
-using Rhino.Runtime;
-using Rhino.Collections;
+using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
 
 namespace UserDataUtils
 {
-    public class SetUserDataComponent : GH_Component
+    public class TypeTesterComponent : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -22,9 +18,9 @@ namespace UserDataUtils
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public SetUserDataComponent()
-          : base("Set User Data", "SUD",
-              "Sets user data to an object.",
+        public TypeTesterComponent()
+          : base("TypeTesterComponent", "TUD",
+              "Tests type.",
               "Speckle", "User Data Utils")
         {
         }
@@ -34,9 +30,8 @@ namespace UserDataUtils
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Object", "O", "Object to attach user data to.", GH_ParamAccess.item);
-            pManager.AddGenericParameter("User Data", "D", "Data to attach.", GH_ParamAccess.item);
-            pManager[1].Optional = true;
+            //pManager.AddGenericParameter("Object", "O", "Object to attach user data to.", GH_ParamAccess.item);
+            pManager.AddGeometryParameter("Geo", "G", "Geometry to attach user data to.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -44,7 +39,7 @@ namespace UserDataUtils
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Object", "O", "Object with user data.", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Test Result", "T", "Object with user data.", GH_ParamAccess.item);
         }
 
 
@@ -55,11 +50,13 @@ namespace UserDataUtils
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            object obj = null;
-            DA.GetData(0, ref obj);
+            //object obj1 = null;
+            //DA.GetData(0, ref obj1);
 
             object obj2 = null;
             DA.GetData(0, ref obj2);
+
+            Debug.WriteLine("////////////////////////////SOLVE RUN///");
 
             var theValue = obj2.GetType().GetProperty("Value").GetValue(obj2, null);
             GeometryBase geometry = null;
@@ -73,37 +70,13 @@ namespace UserDataUtils
             else
                 geometry = theValue as GeometryBase;
 
-            
-            if(geometry==null)
-            {
-                DA.SetData(0, null);
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Input object not supported.");
-                return;
-            }
-
-            object preDictionary = null;
-            DA.GetData(1, ref preDictionary);
-
-            GH_ObjectWrapper temp = preDictionary as GH_ObjectWrapper; 
-            if (temp == null)
-            {
-                DA.SetData(0, geometry);
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Dictionary not provided. Object not modified.");
-                return;
-            }
-
-            ArchivableDictionary dict = ((GH_ObjectWrapper)preDictionary).Value as ArchivableDictionary;
-            if (dict == null)
-            {
-                DA.SetData(0, geometry);
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Dictionary not valid. Object not modified.");
-                return;
-            }
-
-            geometry.UserDictionary.Clear();
-            geometry.UserDictionary.ReplaceContentsWith(dict);
-
             DA.SetData(0, geometry);
+
+            //GH_Goo<GeometryBase> xx = obj2 as GH_Goo<GeometryBase>;
+            //if (xx != null)
+            //    DA.SetData(0, xx.Value.GetType().ToString());
+            //else
+            //    DA.SetData(0, "mep");
         }
 
         protected override System.Drawing.Bitmap Icon
@@ -121,7 +94,7 @@ namespace UserDataUtils
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("{4edbb242-15e2-4b30-89c4-fa800d156250}"); }
+            get { return new Guid("{964ab773-17bd-4c5f-aea4-d2e773121912}"); }
         }
     }
 }
