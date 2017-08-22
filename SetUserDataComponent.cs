@@ -61,6 +61,11 @@ namespace UserDataUtils
             object obj2 = null;
             DA.GetData(0, ref obj2);
 
+            if (obj == null)
+                return;
+            if (obj2 == null)
+                return;
+
             var theValue = obj2.GetType().GetProperty("Value").GetValue(obj2, null);
             GeometryBase geometry = null;
 
@@ -70,6 +75,10 @@ namespace UserDataUtils
                 geometry = ((Line)theValue).ToNurbsCurve() as GeometryBase;
             else if (theValue is Point3d)
                 geometry = new Point((Point3d)theValue) as GeometryBase;
+            else if (theValue is Rectangle3d)
+                geometry = ((Rectangle3d)theValue).ToNurbsCurve() as GeometryBase;
+            else if (theValue is Polyline)
+                geometry = ((Polyline)theValue).ToNurbsCurve() as GeometryBase;
             else
                 geometry = theValue as GeometryBase;
 
@@ -125,3 +134,4 @@ namespace UserDataUtils
         }
     }
 }
+ 

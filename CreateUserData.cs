@@ -77,8 +77,6 @@ namespace UserDataUtils
                         geometry = ((Line)theValue).ToNurbsCurve() as GeometryBase;
                     else if (theValue is Point3d)
                         geometry = new Point((Point3d)theValue) as GeometryBase;
-                    else if (theValue is Vector3d)
-                        geometry = new Point(new Point3d((Vector3d)theValue)) as GeometryBase;
                     else
                         geometry = theValue as GeometryBase;
 
@@ -103,11 +101,20 @@ namespace UserDataUtils
                         if (theValue is bool)
                             props.Set(key, (bool)theValue);
 
+                        if (theValue is Vector3d)
+                            props.Set(key, (Vector3d)theValue);
+
                         if (theValue is Interval)
                             props.Set(key, (Interval)theValue);
 
                         if (theValue is UVInterval)
                             this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "UVInterval not supported.");
+
+                        if (theValue is Plane)
+                            props.Set(key, (Plane)theValue);
+
+                        if (theValue is Rectangle3d)
+                            props.Set(key, ((Rectangle3d)theValue).ToNurbsCurve());
 
                         if (theValue is ArchivableDictionary)
                             props.Set(key, (ArchivableDictionary)theValue);
@@ -147,7 +154,7 @@ namespace UserDataUtils
             param.ObjectChanged += (sender, e) =>
             {
                 Debug.WriteLine("(CUD:) param changed name.");
-                Rhino.RhinoApp.MainApplicationWindow.Invoke((Action) delegate { this.ExpireSolution(true); });
+                Rhino.RhinoApp.MainApplicationWindow.Invoke((Action)delegate { this.ExpireSolution(true); });
             };
 
             return param;
