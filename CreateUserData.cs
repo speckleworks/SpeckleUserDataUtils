@@ -63,70 +63,72 @@ namespace UserDataUtils
             {
                 var key = Params.Input[i].NickName;
 
-                object value = null;
+                GH_ObjectWrapper value = null;
                 DA.GetData(i, ref value);
 
-                if (value != null)
-                {
-                    var theValue = value.GetType().GetProperty("Value").GetValue(value, null);
-                    GeometryBase geometry = null;
-
-                    if (theValue is Circle)
-                        geometry = ((Circle)theValue).ToNurbsCurve() as GeometryBase;
-                    else if (theValue is Line)
-                        geometry = ((Line)theValue).ToNurbsCurve() as GeometryBase;
-                    else if (theValue is Point3d)
-                        geometry = new Point((Point3d)theValue) as GeometryBase;
-                    else
-                        geometry = theValue as GeometryBase;
-
-                    // see if we have geometry to set
-                    if (geometry != null)
-                    {
-                        Debug.WriteLine(geometry.GetType().ToString());
-                        props.Set(key, geometry);
-                    }
-                    // if not
-                    else
-                    {
-                        if (theValue is double)
-                            props.Set(key, (double)theValue);
-
-                        if (theValue is int)
-                            props.Set(key, (double)theValue);
-
-                        if (theValue is string)
-                            props.Set(key, (string)theValue);
-
-                        if (theValue is bool)
-                            props.Set(key, (bool)theValue);
-
-                        if (theValue is Vector3d)
-                            props.Set(key, (Vector3d)theValue);
-
-                        if (theValue is Interval)
-                            props.Set(key, (Interval)theValue);
-
-                        if (theValue is UVInterval)
-                            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "UVInterval not supported.");
-
-                        if (theValue is Plane)
-                            props.Set(key, (Plane)theValue);
-
-                        if (theValue is Rectangle3d)
-                            props.Set(key, ((Rectangle3d)theValue).ToNurbsCurve());
-
-                        if (theValue is ArchivableDictionary)
-                            props.Set(key, (ArchivableDictionary)theValue);
-                    }
-                }
-                else
+                if (value == null)
                 {
                     props.Set(key, "undefined");
+                    continue;
                 }
+
+                GeometryBase geometry = getGeometryBase(value.Value);
+
+                if (geometry != null)
+                {
+                    props.Set(key, geometry);
+                    continue;
+                }
+
+                Debug.WriteLine(value.Value.GetType().ToString());
+
+                if (value.Value is double)
+                    props.Set(key, (double)value.Value);
+
+                if (value.Value is GH_Integer)
+                    props.Set(key, ((GH_Integer)value.Value).Value);
+
+                if (value.Value is string)
+                    props.Set(key, (string)value.Value);
+
+                if (value.Value is bool)
+                    props.Set(key, (bool)value.Value);
+
+                if (value.Value is Vector3d)
+                    props.Set(key, (Vector3d)value.Value);
+
+                if (value.Value is Interval)
+                    props.Set(key, (Interval)value.Value);
+
+                if (value.Value is UVInterval)
+                {
+                    props.Set(key, "UV Interval not supported.");
+                    this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "UVInterval not supported.");
+                }
+
+                if (value.Value is Plane)
+                    props.Set(key, (Plane)value.Value);
+
+                if (value.Value is ArchivableDictionary)
+                    props.Set(key, (ArchivableDictionary)value.Value);
+
             }
 
             DA.SetData(0, props);
+        }
+
+        public GeometryBase getGeometryBase(object myObject)
+        {
+            if (myObject is GH_Point) return new Point(((GH_Point)myObject).Value);
+            if (myObject is Point3d) return new Point((Point3d)myObject);
+            if (myObject is Line) return ((Line)myObject).ToNurbsCurve();
+            if (myObject is Circle) return ((Circle)myObject).ToNurbsCurve();
+            if (myObject is Arc) return ((Arc)myObject).ToNurbsCurve();
+            if (myObject is Rectangle3d) return ((Rectangle3d)myObject).ToNurbsCurve();
+            if (myObject is Polyline) return ((Polyline)myObject).ToNurbsCurve();
+            if (myObject is Box) return ((Box)myObject).ToBrep();
+
+            return myObject as GeometryBase;
         }
 
         public bool CanInsertParameter(GH_ParameterSide side, int index)
