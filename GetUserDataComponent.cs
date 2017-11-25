@@ -17,7 +17,7 @@ namespace UserDataUtils
         /// </summary>
         public GetUserDataComponent()
           : base("Get User Data", "GUD",
-              "Gets the user data attached to an object, if any.",
+              "Extracts the user dictionary attached to an object, if any.",
               "Speckle", "User Data Utils")
         {
         }

@@ -93,12 +93,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TypeTester.cs" />
     <Compile Include="CreateUserData.cs" />
     <Compile Include="CsvUserData.cs" />
     <Compile Include="GetUserDataComponent.cs" />
     <Compile Include="ExpandUserDataComponent.cs" />
-    <Compile Include="JsonUserData.cs" />
+    <Compile Include="GetValueAtKey.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
