@@ -55,13 +55,15 @@ namespace UserDataUtils
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            GH_ObjectWrapper objectRef = null;
+            object objectRef = null;
             DA.GetData(0, ref objectRef);
 
             if (objectRef == null)
                 return;
 
-            GeometryBase recipient = getGeometryBase(objectRef.Value);
+            object valueExtract = objectRef.GetType().GetProperty("Value").GetValue(objectRef, null);
+
+            GeometryBase recipient = getGeometryBase(valueExtract);
 
             if (recipient == null)
             {
@@ -96,6 +98,7 @@ namespace UserDataUtils
 
         public GeometryBase getGeometryBase(object myObject)
         {
+            Debug.WriteLine(myObject.GetType().ToString());
             if (myObject is GH_Point) return new Point(((GH_Point)myObject).Value);
             if (myObject is Point3d) return new Point((Point3d)myObject);
             if (myObject is Line) return ((Line)myObject).ToNurbsCurve();

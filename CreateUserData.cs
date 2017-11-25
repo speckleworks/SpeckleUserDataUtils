@@ -63,16 +63,20 @@ namespace UserDataUtils
             {
                 var key = Params.Input[i].NickName;
 
-                GH_ObjectWrapper value = null;
-                DA.GetData(i, ref value);
+                object ghInputProperty = null;
+                DA.GetData(i, ref ghInputProperty);
 
-                if (value == null)
+                if (ghInputProperty == null)
                 {
                     props.Set(key, "undefined");
                     continue;
                 }
 
-                GeometryBase geometry = getGeometryBase(value.Value);
+                object valueExtract = ghInputProperty.GetType().GetProperty("Value").GetValue(ghInputProperty, null);
+
+                Debug.WriteLine(key + ": " + valueExtract.GetType().ToString());
+
+                GeometryBase geometry = getGeometryBase(valueExtract);
 
                 if (geometry != null)
                 {
@@ -80,50 +84,48 @@ namespace UserDataUtils
                     continue;
                 }
 
-                Debug.WriteLine(value.Value.GetType().ToString());
+                if (valueExtract is double)
+                    props.Set(key, (double)valueExtract);
 
-                if (value.Value is double)
-                    props.Set(key, (double)value.Value);
+                if (valueExtract is Int32 || valueExtract is Int64 || valueExtract is Int16 || valueExtract is int)
+                    props.Set(key, (int)valueExtract);
 
-                if (value.Value is GH_Integer)
-                    props.Set(key, ((GH_Integer)value.Value).Value);
+                if (valueExtract is string)
+                    props.Set(key, (string)valueExtract);
 
-                if (value.Value is string)
-                    props.Set(key, (string)value.Value);
+                if (valueExtract is bool)
+                    props.Set(key, (bool)valueExtract);
 
-                if (value.Value is bool)
-                    props.Set(key, (bool)value.Value);
+                if (valueExtract is Vector3d)
+                    props.Set(key, (Vector3d)valueExtract);
 
-                if (value.Value is Vector3d)
-                    props.Set(key, (Vector3d)value.Value);
+                if (valueExtract is Point3d)
+                    props.Set(key, (Point3d)valueExtract);
 
-                if (value.Value is Interval)
-                    props.Set(key, (Interval)value.Value);
+                if (valueExtract is Line)
+                    props.Set(key, (Line)valueExtract);
 
-                if (value.Value is UVInterval)
-                {
+                if ((valueExtract is Circle))
+                    props.Set(key, new ArcCurve((Circle)valueExtract));
+
+                if (valueExtract is Interval)
+                    props.Set(key, (Interval)valueExtract);
+
+                if (valueExtract is UVInterval)
                     props.Set(key, "UV Interval not supported.");
-                    this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "UVInterval not supported.");
-                }
 
-                if (value.Value is Plane)
-                    props.Set(key, (Plane)value.Value);
+                if (valueExtract is Plane)
+                    props.Set(key, (Plane)valueExtract);
 
-                if (value.Value is ArchivableDictionary)
-                    props.Set(key, (ArchivableDictionary)value.Value);
-
+                if (valueExtract is ArchivableDictionary)
+                    props.Set(key, (ArchivableDictionary)valueExtract);
             }
 
             DA.SetData(0, props);
         }
 
         public GeometryBase getGeometryBase(object myObject)
-        {
-            if (myObject is GH_Point) return new Point(((GH_Point)myObject).Value);
-            if (myObject is Point3d) return new Point((Point3d)myObject);
-            if (myObject is Line) return ((Line)myObject).ToNurbsCurve();
-            if (myObject is Circle) return ((Circle)myObject).ToNurbsCurve();
-            if (myObject is Arc) return ((Arc)myObject).ToNurbsCurve();
+        { 
             if (myObject is Rectangle3d) return ((Rectangle3d)myObject).ToNurbsCurve();
             if (myObject is Polyline) return ((Polyline)myObject).ToNurbsCurve();
             if (myObject is Box) return ((Box)myObject).ToBrep();

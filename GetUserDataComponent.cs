@@ -51,14 +51,7 @@ namespace UserDataUtils
             var theValue = obj2.GetType().GetProperty("Value").GetValue(obj2, null);
             GeometryBase geometry = null;
 
-            if (theValue is Circle)
-                geometry = ((Circle)theValue).ToNurbsCurve() as GeometryBase;
-            else if (theValue is Line)
-                geometry = ((Line)theValue).ToNurbsCurve() as GeometryBase;
-            else if (theValue is Point3d)
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "User data does not persist on points.");
-            else
-                geometry = theValue as GeometryBase;
+            geometry = theValue as GeometryBase;
 
 
             if (geometry == null)
