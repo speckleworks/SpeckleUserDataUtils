@@ -17,7 +17,7 @@ namespace UserDataUtils
         /// </summary>
         public GetUserDataComponent()
           : base("Get User Data", "GUD",
-              "Gets the user data attached to an object, if any.",
+              "Extracts the user dictionary attached to an object, if any.",
               "Speckle", "User Data Utils")
         {
         }
@@ -51,14 +51,7 @@ namespace UserDataUtils
             var theValue = obj2.GetType().GetProperty("Value").GetValue(obj2, null);
             GeometryBase geometry = null;
 
-            if (theValue is Circle)
-                geometry = ((Circle)theValue).ToNurbsCurve() as GeometryBase;
-            else if (theValue is Line)
-                geometry = ((Line)theValue).ToNurbsCurve() as GeometryBase;
-            else if (theValue is Point3d)
-                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "User data does not persist on points.");
-            else
-                geometry = theValue as GeometryBase;
+            geometry = theValue as GeometryBase;
 
 
             if (geometry == null)

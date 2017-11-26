@@ -153,7 +153,7 @@ namespace UserDataUtils
                 foreach (var key in global.Keys)
                 {
                     Params.Output[k].Name = Params.Output[k].NickName = key;
-                    DA.SetDataList(k++, global[key]);
+                    DA.SetDataList(k++, global[key].Select(x => new GH_ObjectWrapper(x)));
                 }
             }
         }
