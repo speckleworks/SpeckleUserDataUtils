@@ -1,3 +1,6 @@
+# ARCHIVED - merged into speckleworks/SpeckleRhino
+
+
 ## Speckle Data Utils
 
 Create, Get and Set UserDictionary properties for various CommonObject types.
